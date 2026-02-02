@@ -123,15 +123,14 @@ class Keithley2000(Instrument):
         self.write(':FORM ASC')
         self.write(':FORM:ELEM READ,UNIT,CHAN')
         self.wait_for_srq('*SRE 1;:STAT:MEAS:ENAB 32;*CLS;')
-        match source:
-            case self.SOURCE.FUNCTION:
-                self.write(':SENS:DATA?')
-            case self.SOURCE.CALC1:
-                self.write(':CALC1:DATA?')
-            case self.SOURCE.CALC2:
-                self.write(':CALC2:DATA?')
-            case self.SOURCE.CALC3:
-                self.write(':CALC3:LIM:FAIL?')
+        if source == self.SOURCE.FUNCTION:
+            self.write(':SENS:DATA?')
+        if source == self.SOURCE.CALC1:
+            self.write(':CALC1:DATA?')
+        if source == self.SOURCE.CALC2:
+            self.write(':CALC2:DATA?')
+        if source == self.SOURCE.CALC3:
+            self.write(':CALC3:LIM:FAIL?')
         data = self.read().strip()
         raw, channel = data.split(',')
         raw_voltage, strings = parse("{:f}{:S}", raw)
@@ -171,14 +170,13 @@ class Keithley2000(Instrument):
 
     def configure_thermocouple(self, thermocouple_type:THERMOCOUPLE_TYPE, reference_junction_type:REFERENCE_JUNCTION_TYPE, simulated_temperature=23, temperature_coefficient=2E-4, voltage_offset=5.463E-2):
         self.write(':TEMP:TC:TYPE ' + thermocouple_type.value)
-        match reference_junction_type:
-            case self.REFERENCE_JUNCTION_TYPE.SIMULATED:
-                self.write(':TEMP:TC:RJUN:RSEL SIM')
-                self.write(':TEMP:TC:RJUN:SIM ' + str(simulated_temperature))
-            case self.REFERENCE_JUNCTION_TYPE.REAL:
-                self.write(':TEMP:TC:RJUN:RSEL REAL')
-                self.write(':TEMP:TC:RJUN:REAL:TCO ' + str(temperature_coefficient))
-                self.write(':TEMP:TC:RJUN:REAL:OFFSET ' + str(voltage_offset))
+        if reference_junction_type == self.REFERENCE_JUNCTION_TYPE.SIMULATED:
+            self.write(':TEMP:TC:RJUN:RSEL SIM')
+            self.write(':TEMP:TC:RJUN:SIM ' + str(simulated_temperature))
+        if reference_junction_type == self.REFERENCE_JUNCTION_TYPE.REAL:
+            self.write(':TEMP:TC:RJUN:RSEL REAL')
+            self.write(':TEMP:TC:RJUN:REAL:TCO ' + str(temperature_coefficient))
+            self.write(':TEMP:TC:RJUN:REAL:OFFSET ' + str(voltage_offset))
         return
     class RESOLUTION(Enum):
         _3_5_Digits = 4
@@ -206,26 +204,25 @@ class Keithley2000(Instrument):
         self.write(':TEMP:DIG ' + str(resolution.value))
         self.write(':UNIT:TEMP ' + temperature_units.value)
         self.write(':TEMP:NPLC ' + str(power_line_cycles))
-        match digital_filter_type:
-            case self.DIGITAL_FILTER.OFF:
+        if digital_filter_type == self.DIGITAL_FILTER.OFF:
                 self.write(':TEMP:AVER:STAT OFF')
-            case self.DIGITAL_FILTER.MOVING_FILTER:
-                self.write(':TEMP:AVER:TCON MOV')
-                self.write('COUN ' + str(digital_filter_readings))
-                self.write('STAT ON')
-            case self.DIGITAL_FILTER.REPEATING_FILTER:
-                self.write(':TEMP:AVER:TCON REP')
-                self.write('COUN ' + str(digital_filter_readings))
-                self.write('STAT ON')
-        match reference_type:
-            case self.REFERENCE_TYPE.OFF:
-                self.write(':TEMP:REF:STAT OFF')
-            case self.REFERENCE_TYPE.SET:
-                self.write(':TEMP:REF ' + str(reference_value))
-                self.write('REF:STAT ON')
-            case self.REFERENCE_TYPE.ACQUIRE:
-                self.wait_for_srq('*SRE 1;:STAT:MEAS:ENAB 32;*CLS;')
-                self.write(':TEMP:REF:STAT ON;:TEMP:REF:ACQ')
+        if digital_filter_type == self.DIGITAL_FILTER.MOVING_FILTER:
+            self.write(':TEMP:AVER:TCON MOV')
+            self.write('COUN ' + str(digital_filter_readings))
+            self.write('STAT ON')
+        if digital_filter_type == self.DIGITAL_FILTER.REPEATING_FILTER:
+            self.write(':TEMP:AVER:TCON REP')
+            self.write('COUN ' + str(digital_filter_readings))
+            self.write('STAT ON')
+        
+        if reference_type == self.REFERENCE_TYPE.OFF:
+            self.write(':TEMP:REF:STAT OFF')
+        if reference_type ==  self.REFERENCE_TYPE.SET:
+            self.write(':TEMP:REF ' + str(reference_value))
+            self.write('REF:STAT ON')
+        if reference_type ==  self.REFERENCE_TYPE.ACQUIRE:
+            self.wait_for_srq('*SRE 1;:STAT:MEAS:ENAB 32;*CLS;')
+            self.write(':TEMP:REF:STAT ON;:TEMP:REF:ACQ')
         err = self.error()
         if(err.split(',')[0] != '0'):print(err)
         return
