@@ -355,3 +355,7 @@ class LI5640(Instrument):
         self.write('DOUT?')
         output_data = [float(s) for s in str.strip(self.read()).split(',')]
         return output_data
+    
+    def check_overlevel(self):
+        self.write('OVER?')
+        return str.strip(self.read())
