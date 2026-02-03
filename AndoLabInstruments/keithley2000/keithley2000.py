@@ -46,7 +46,14 @@ class Keithley2000(Instrument):
         if(err.split(',')[0] != '0'):print(err)
 
         return
-            
+    
+    def configure_AC_volts(self, resolution:Digits = Digits.DEFAULT, power_line_cycle:float = 1, enable_auto_range:bool = True, custom_range:float = 0, digital_filter:DigitalFilter = DigitalFilter.OFF, digital_filter_readings:int = 10, reference:Reference = Reference.OFF, reference_value:float = 0):
+        self.write(":FUNC 'VOLT:AC';")
+
+        err = self.error()
+        if(err.split(',')[0] != '0'):print(err)
+
+        return
     
     def abort(self):
         self.write(':INIT:CONT OFF')
