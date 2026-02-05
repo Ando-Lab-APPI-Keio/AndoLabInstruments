@@ -113,7 +113,21 @@ class Keithley2000(Instrument):
         if(err.split(',')[0] != '0'):print(err)
         
         return
-    
+################################################
+### Filter settings
+################################################
+    class BANDWIDTH(Enum):
+        LOW       =   3
+        MED       =   30
+        HIGH      =   300
+
+    def set_ac_bandwidth(self, bandwidth:BANDWIDTH):
+        self.write(':SENSe:VOLTage:AC:DETector:BANDwidth ' + str(bandwidth.value))
+        return
+################################################
+### Initiate & Measurement
+################################################
+
     def initiate_measurement(self):
         self.write(':FORM ASC')
         self.write(':FORM:ELEM READ,UNIT,CHAN')
