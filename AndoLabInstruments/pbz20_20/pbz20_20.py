@@ -49,6 +49,7 @@ class PBZ20_20(Instrument):
 
         return
     
+
     class PROT_MODE(Enum):
         LIMIT   = 0
         TRIP    = 1
@@ -93,3 +94,62 @@ class PBZ20_20(Instrument):
     
     def set_soft_start_timer(self, time:float):
         self.write('TRIGger:OUTPut:SSTart:RISE ' + str(time))
+
+
+    class FUNC_MODE(Enum):
+        """
+        constant voltage (CV) or constant current (CC)
+        """
+        CV = 'CV'
+        CC = 'CC'
+
+    def get_function_mode(self) -> str:
+        self.write('FUNCtion:MODE?')
+        return self.read().strip()
+
+    def set_function_mode(self, mode: FUNC_MODE):
+        '''
+        switch between CV/CC mode
+        '''
+        was_on = self.get_output_state()
+        if was_on:
+            self.output(False)
+ 
+        self.write('FUNCtion:MODE ' + mode.value)
+ 
+        err = self.error()
+        if(err.split(',')[0] != '0'):print(err)
+ 
+        return
+    
+    def get_output_state(self) -> bool:
+        self.write('OUTPut:STATe:IMMediate?')
+        return self.read().strip() in ('1', 'ON')
+
+    def set_current(self, current:float):
+        self.write('CURR ' + str(current))
+ 
+        err = self.error()
+        if(err.split(',')[0] != '0'):print(err)
+ 
+        return
+
+ 
+    class CURR_RESPONSE(Enum):
+        US35  = 35
+        US100 = 100
+        US350 = 350
+        MS1   = 1000
+
+    def set_current_response(self, response: CURR_RESPONSE):
+        '''
+        set the response time for the CC mode, which is required
+        to counteract the electromotive force via magnetic induction
+        We can select the response time from 100/350/1000us.
+        '''
+        self.write('CURRent:RESPonse ' + str(response.value) + 'US')
+ 
+        err = self.error()
+        if(err.split(',')[0] != '0'):print(err)
+ 
+        return
