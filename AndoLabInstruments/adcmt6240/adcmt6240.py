@@ -103,6 +103,29 @@ class ADCMT6240(Instrument):
         self.write(current_range_map[current_range])
         return
 
+    class SourceVoltageRangeType(Enum):
+        """
+        SVRX:Optimal range #defalut
+        SVR3: 300 mV range
+        SVR4: 3 V range
+        SVR5: 15V range
+        SVR?:Response: SVRX (for the optimal range), SVR3 to SVR5 (for the fixed range)
+        """
+        Optimal = 0
+        V_300mV = 1
+        V_3V    = 2
+        V_15V   = 3
+        
+    def configure_voltage_range(self, voltage_range: SourceVoltageRangeType):
+        voltage_range_map = {
+            self.SourceVoltageRangeType.Optimal :'SVRX',
+            self.SourceVoltageRangeType.V_300mV :'SVR3',
+            self.SourceVoltageRangeType.V_3V    :'SVR4',
+            self.SourceVoltageRangeType.V_15V   :'SVR5',
+        }
+        self.write(voltage_range_map[voltage_range])
+        return
+
     def operate_output(self):
         self.write('OPR')
         return
